@@ -6,6 +6,7 @@ use rand::{prelude::*, seq::IteratorRandom};
 // Not unicode (cmd is being annoying)
 const CELL_HIDDEN: char = 'O';
 const CELL_MINE: char = 'X';
+const CELL_FLAGGED: char = 'F';
 const CELL_VALUE: [char; 9] = [
     '_', // 0 - empty box
     '1', // 1
@@ -21,6 +22,7 @@ const CELL_VALUE: [char; 9] = [
 // Unicode
 // const CELL_HIDDEN: char = '\u{1568}';
 // const CELL_MINE: char = '\u{1500}';
+// const CELL_FLAGGED: char = '\u{1499}';
 // const CELL_VALUE: [char; 9] = [
 //     '\u{1564}', // 0 - empty box
 //     '\u{1502}', // 1
@@ -80,6 +82,7 @@ impl Minesweeper {
             },
         }
     }
+
     pub fn unhide(&mut self, x: usize, y: usize) -> CellValue {
         let cell = &mut self.board[(y * self.width) + x];
 
@@ -90,6 +93,12 @@ impl Minesweeper {
         } else {
             CellValue::Value(self.adjacent_mines(x, y))
         }
+    }
+
+    pub fn toggle_flag(&mut self, x: usize, y: usize) {
+        let cell = &mut self.board[(y * self.width) + x];
+
+        cell.flagged != cell.flagged;
     }
 
     fn cell(&self, x: usize, y: usize) -> &MineCell {
@@ -117,7 +126,9 @@ impl Display for Minesweeper {
                 f.write_char('\n')?;
             }
 
-            if cell.hidden {
+            if cell.flagged && cell.hidden {
+                f.write_char(CELL_FLAGGED)?;
+            } else if cell.hidden {
                 f.write_char(CELL_HIDDEN)?;
             } else if cell.mine {
                 f.write_char(CELL_MINE)?;
